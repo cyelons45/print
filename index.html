@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+
+  <meta name="viewport" content="initial-scale=1, maximum-scale=1,user-scalable=no">
+  <title>Unique Value Renderer</title>
+  <link rel="stylesheet" href="https://js.arcgis.com/3.22/esri/css/esri.css">
+  <link rel="stylesheet" href="https://js.arcgis.com/3.22/dijit/themes/nihilo/nihilo.css">
+  <style>
+    html, body, #map{
+      height: 100%;
+      margin: 0;
+      padding: 0;
+    }
+    body{
+      background-color: #fff; overflow:hidden;
+      font-family: sans-serif;
+    }
+    label {
+      display: inline-block;
+      padding: 5px 5px 0 5px;
+      font-weight: 400;
+      font-size: 12pt;
+    }
+    .button {
+      width: 100%;
+      margin: 3px auto;
+      text-align: center;
+    }
+    #header {
+      padding-top: 4px;
+      padding-right: 15px;
+      color: #444;
+      font-size:16pt; text-align:right;font-weight:bold;
+      height:55px;
+      background: #fff;
+      border-bottom: 1px solid #444;
+    }
+    #subheader {
+      font-size:small;
+      color: #444;
+      text-align:right;
+      padding-right:20px;
+    }
+    #rightPane{
+      margin: 0;
+      padding: 10px;
+      background-color: #fff;
+      color: #421b14;
+      width: 180px;
+    }
+
+    /* make all dijit buttons the same width */
+    .dijitButton .dijitButtonNode, #printButton
+    {width: 160px;}
+    .esriPrint {
+      padding: 0;
+    }
+
+  </style>
+  <script src="https://js.arcgis.com/3.22/"></script>
+  <script>
+    var app = {};
+    app.map = null; app.toolbar = null; app.tool = null; app.symbols = null; app.printer = null;
+    require([
+      "esri/map", "esri/layers/FeatureLayer", "esri/InfoTemplate", "esri/dijit/Print",
+      "esri/symbols/SimpleLineSymbol", "esri/symbols/SimpleMarkerSymbol",
+      "esri/renderers/UniqueValueRenderer", "esri/Color", "esri/config",
+      "dojo/parser","dojo/query", "dojo/dom", "dijit/form/Button",
+      "dojo/domReady!"
+    ], function(
+      Map, FeatureLayer, InfoTemplate, Print,
+      SimpleLineSymbol, SimpleMarkerSymbol,
+      UniqueValueRenderer, Color, esriConfig, parser, query, dom, Button
+    ) {
+      parser.parse();
+      esriConfig.defaults.io.proxyUrl = "/proxy/";
+
+
+
+      app.map = new Map("map", {
+        basemap: "streets",
+        center: [-105.78, 39.55],
+        zoom: 6,
+        slider: false
+      });
+
+      app.printer = new Print({
+        map: app.map,
+        url: "https://sampleserver6.arcgisonline.com/arcgis/rest/services/Utilities/PrintingTools/GPServer/Export%20Web%20Map%20Task"
+      }, dom.byId("printButton"));
+      app.printer.startup();
+
+      var uvrJson = {
+        "type": "uniqueValue",
+        "field1": "Class",
+        "defaultSymbol": {
+          "color": [0, 0, 0, 64],
+          "outline": {
+            "color": [0, 0, 0, 255],
+            "width": 1,
+            "type": "esriSMS",
+            "style": "esriSMSCircle"
+          },
+          "type": "esriSMS",
+          "style": "esriSMSCircle"
+        },
+        "uniqueValueInfos": [{
+          "value": "Class 1",
+          "symbol": {
+            "color": [255, 204, 204, 1],
+            "outline": {
+              "color": [0, 0, 0, 255],
+              "width": 1,
+              "type": "esriSMS",
+              "style": "esriSMSCircle"
+            },
+            "type": "esriSLS",
+            "style": "esriSLSSolid"
+          }
+        }, {
+          "value": "Class 2",
+          "symbol": {
+            "color": [255, 102, 102, 1],
+            "outline": {
+              "color": [0, 0, 0, 255],
+              "width": 1,
+              "type": "esriSMS",
+              "style": "esriSMSCircle"
+            },
+            "type": "esriSLS",
+            "style": "esriSLSolid"
+          }
+        },
+          {
+            "value": "Class 3",
+            "symbol": {
+              "color": [255, 0, 0, 1],
+              "outline": {
+                "color": [0, 0, 0, 255],
+                "width": 1,
+                "type": "esriSMS",
+                "style": "esriSMSCircle"
+              },
+              "type": "esriSLS",
+              "style": "esriSLSolid"
+            }
+          },
+          {
+            "value": "Class 4",
+            "symbol": {
+              "color": [102, 0, 0, 0],
+              "outline": {
+                "color": [0, 0, 0, 255],
+                "width": 1,
+                "type": "esriSMS",
+                "style": "esriSMSCircle"
+              },
+              "type": "esriSLS",
+              "style": "esriSLSolid"
+            }
+          }]
+      }
+
+
+      var featureLayer = new FeatureLayer("https://services.arcgis.com/IZtlGBUe4KTzLOl4/ArcGIS/rest/services/Colorado14ers/FeatureServer/0", {
+        infoTemplate: new InfoTemplate(" ", "${Class}"),
+        mode: FeatureLayer.MODE_ONDEMAND,
+        outFields: ["Class"]
+      });
+
+      app.map.addLayer(featureLayer);
+
+    });
+
+
+  </script>
+</head>
+
+<body class="nihilo">
+<div id="mainWindow"
+     data-dojo-type="dijit/layout/BorderContainer"
+     data-dojo-props="design:'headline',gutters:false"
+     style="width: 100%; height: 100%; margin: 0;">
+  <div id="header"
+       data-dojo-type="dijit/layout/ContentPane"
+       data-dojo-props="region:'top'">
+    Colorado 14ers Map
+    <div id="subheader"></div>
+  </div>
+  <div id="map" class="shadow"
+       data-dojo-type="dijit/layout/ContentPane"
+       data-dojo-props="region:'center'"><div id="ds">
+
+
+<div id="rightPane"
+     data-dojo-type="dijit/layout/ContentPane"
+     data-dojo-props="region:'right'">
+
+  <div id="printButton"></div>
+  <hr />
+</div>
+  </div>
+  </div>
+</div>
+</body>
+
+</html>
